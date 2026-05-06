@@ -6,40 +6,52 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Fetch GoogleTest
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG release-1.12.1
-)
-set(gtest_force_shared_crt OFF)
-FetchContent_MakeAvailable(googletest)
-
-enable_testing()
-
 # Find CGAL for include paths
 find_package(CGAL REQUIRED)
 
-# Test executable
+# Use system-installed GTest
+find_package(GTest QUIET)
+
+# Unit tests
 add_executable(test_tetwild 
     test_tetmesh_elements.cpp
 )
 
-# Add include directories - from main project and CGAL
 target_include_directories(test_tetwild PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src
     ${CGAL_INCLUDE_DIRS}
 )
 
-# Link to libTetWild which has all the proper dependencies
 target_link_libraries(test_tetwild
     PRIVATE
     libTetWild
-    GTest::gtest
-    GTest::gtest_main
 )
 
-# Register tests
+if(GTest_FOUND)
+    target_link_libraries(test_tetwild PRIVATE GTest::gtest GTest::gtest_main)
+endif()
+
 add_test(NAME TetWildTests COMMAND test_tetwild)
+
+# Integration tests
+add_executable(test_integration
+    test_integration.cpp
+)
+
+target_include_directories(test_integration PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src
+    ${CGAL_INCLUDE_DIRS}
+)
+
+target_link_libraries(test_integration
+    PRIVATE
+    libTetWild
+)
+
+if(GTest_FOUND)
+    target_link_libraries(test_integration PRIVATE GTest::gtest GTest::gtest_main)
+endif()
+
+add_test(NAME TetWildIntegrationTests COMMAND test_integration)

@@ -40,6 +40,7 @@ public:
 
     void round() {
         posf = Point_3f(CGAL::to_double(pos[0]), CGAL::to_double(pos[1]), CGAL::to_double(pos[2]));
+        is_rounded = true;
     }
 
     ///for bbox
